@@ -1,5 +1,5 @@
 const test = require('tap').test;
-// const Ardunio = require('../../src/extensions/scratch3_ardunio/index.js');
+// const Arduino = require('../../src/extensions/scratch3_arduino/index.js');
 
 test('displayText', t => {
     t.end();

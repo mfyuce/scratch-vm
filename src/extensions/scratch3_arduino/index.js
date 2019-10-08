@@ -3,7 +3,7 @@ const BlockType = require('../../extension-support/block-type');
 const log = require('../../util/log');
 const cast = require('../../util/cast');
 const formatMessage = require('format-message');
-const BLE = require('../../io/ble');
+const ARDUINO = require('../../io/arduino');
 const Base64Util = require('../../util/base64-util');
 
 /**
@@ -14,8 +14,8 @@ const Base64Util = require('../../util/base64-util');
 const blockIconURI = 'data:image/png;base64,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';
 
 /**
- * Enum for ardunio BLE command protocol.
- * https://github.com/LLK/scratch-ardunio-firmware/blob/master/protocol.md
+ * Enum for arduino ARDUINO command protocol.
+ * https://github.com/LLK/scratch-arduino-firmware/blob/master/protocol.md
  * @readonly
  * @enum {number}
  */
@@ -27,26 +27,26 @@ const BLECommand = {
 
 
 /**
- * A time interval to wait (in milliseconds) before reporting to the BLE socket
+ * A time interval to wait (in milliseconds) before reporting to the ARDUINO socket
  * that data has stopped coming from the peripheral.
  */
 const BLETimeout = 4500;
 
 /**
- * A time interval to wait (in milliseconds) while a block that sends a BLE message is running.
+ * A time interval to wait (in milliseconds) while a block that sends a ARDUINO message is running.
  * @type {number}
  */
 const BLESendInterval = 100;
 
 /**
- * A string to report to the BLE socket when the ardunio has stopped receiving data.
+ * A string to report to the ARDUINO socket when the arduino has stopped receiving data.
  * @type {string}
  */
-const BLEDataStoppedError = 'ardunio extension stopped receiving data';
+const BLEDataStoppedError = 'arduino extension stopped receiving data';
 
 /**
- * Enum for ardunio protocol.
- * https://github.com/LLK/scratch-ardunio-firmware/blob/master/protocol.md
+ * Enum for arduino protocol.
+ * https://github.com/LLK/scratch-arduino-firmware/blob/master/protocol.md
  * @readonly
  * @enum {string}
  */
@@ -57,12 +57,12 @@ const BLEUUID = {
 };
 
 /**
- * Manage communication with a Ardunio peripheral over a Scrath Link client socket.
+ * Manage communication with a Arduino peripheral over a Scrath Link client socket.
  */
-class Ardunio {
+class Arduino {
 
     /**
-     * Construct a Ardunio communication object.
+     * Construct a Arduino communication object.
      * @param {Runtime} runtime - the Scratch 3.0 runtime
      * @param {string} extensionId - the id of the extension
      */
@@ -77,10 +77,10 @@ class Ardunio {
 
         /**
          * The BluetoothLowEnergy connection socket for reading/writing peripheral data.
-         * @type {BLE}
+         * @type {ARDUINO}
          * @private
          */
-        this._ble = null;
+        this._arduino = null;
         this._runtime.registerPeripheralExtension(extensionId, this);
 
         /**
@@ -132,7 +132,7 @@ class Ardunio {
         this._timeoutID = null;
 
         /**
-         * A flag that is true while we are busy sending data to the BLE socket.
+         * A flag that is true while we are busy sending data to the ARDUINO socket.
          * @type {boolean}
          * @private
          */
@@ -215,12 +215,12 @@ class Ardunio {
      * Called by the runtime when user wants to scan for a peripheral.
      */
     scan () {
-        if (this._ble) {
-            this._ble.disconnect();
+        if (this._arduino) {
+            this._arduino.disconnect();
         }
-        this._ble = new BLE(this._runtime, this._extensionId, {
+        this._arduino = new ARDUINO(this._runtime, this._extensionId, {
             filters: [
-                {services: [BLEUUID.service]}
+                {namePrefix: 'w'}
             ]
         }, this._onConnect, this.reset);
     }
@@ -230,17 +230,17 @@ class Ardunio {
      * @param {number} id - the id of the peripheral to connect to.
      */
     connect (id) {
-        if (this._ble) {
-            this._ble.connectPeripheral(id);
+        if (this._arduino) {
+            this._arduino.connectPeripheral(id);
         }
     }
 
     /**
-     * Disconnect from the ardunio.
+     * Disconnect from the arduino.
      */
     disconnect () {
-        if (this._ble) {
-            this._ble.disconnect();
+        if (this._arduino) {
+            this._arduino.disconnect();
         }
 
         this.reset();
@@ -257,20 +257,20 @@ class Ardunio {
     }
 
     /**
-     * Return true if connected to the ardunio.
-     * @return {boolean} - whether the ardunio is connected.
+     * Return true if connected to the arduino.
+     * @return {boolean} - whether the arduino is connected.
      */
     isConnected () {
         let connected = false;
-        if (this._ble) {
-            connected = this._ble.isConnected();
+        if (this._arduino) {
+            connected = this._arduino.isConnected();
         }
         return connected;
     }
 
     /**
-     * Send a message to the peripheral BLE socket.
-     * @param {number} command - the BLE command hex.
+     * Send a message to the peripheral ARDUINO socket.
+     * @param {number} command - the ARDUINO command hex.
      * @param {Uint8Array} message - the message to write
      */
     send (command, message) {
@@ -282,7 +282,7 @@ class Ardunio {
         this._busy = true;
 
         // Set a timeout after which to reset the busy flag. This is used in case
-        // a BLE message was sent for which we never received a response, because
+        // a ARDUINO message was sent for which we never received a response, because
         // e.g. the peripheral was turned off after the message was sent. We reset
         // the busy flag after a while so that it is possible to try again later.
         this._busyTimeoutID = window.setTimeout(() => {
@@ -296,7 +296,7 @@ class Ardunio {
         }
         const data = Base64Util.uint8ArrayToBase64(output);
 
-        this._ble.write(BLEUUID.service, BLEUUID.txChar, data, 'base64', true).then(
+        this._arduino.write(BLEUUID.service, BLEUUID.txChar, data, 'base64', true).then(
             () => {
                 this._busy = false;
                 window.clearTimeout(this._busyTimeoutID);
@@ -305,20 +305,20 @@ class Ardunio {
     }
 
     /**
-     * Starts reading data from peripheral after BLE has connected to it.
+     * Starts reading data from peripheral after ARDUINO has connected to it.
      * @private
      */
     _onConnect () {
-        this._ble.read(BLEUUID.service, BLEUUID.rxChar, true, this._onMessage);
+        this._arduino.read(BLEUUID.service, BLEUUID.rxChar, true, this._onMessage);
         this._timeoutID = window.setTimeout(
-            () => this._ble.handleDisconnectError(BLEDataStoppedError),
+            () => this._arduino.handleDisconnectError(BLEDataStoppedError),
             BLETimeout
         );
     }
 
     /**
-     * Process the sensor data from the incoming BLE characteristic.
-     * @param {object} base64 - the incoming BLE data.
+     * Process the sensor data from the incoming ARDUINO characteristic.
+     * @param {object} base64 - the incoming ARDUINO data.
      * @private
      */
     _onMessage (base64) {
@@ -342,7 +342,7 @@ class Ardunio {
         // cancel disconnect timeout and start a new one
         window.clearTimeout(this._timeoutID);
         this._timeoutID = window.setTimeout(
-            () => this._ble.handleDisconnectError(BLEDataStoppedError),
+            () => this._arduino.handleDisconnectError(BLEDataStoppedError),
             BLETimeout
         );
     }
@@ -362,7 +362,7 @@ class Ardunio {
  * @readonly
  * @enum {string}
  */
-const ArdunioTiltDirection = {
+const ArduinoTiltDirection = {
     FRONT: 'front',
     BACK: 'back',
     LEFT: 'left',
@@ -371,54 +371,54 @@ const ArdunioTiltDirection = {
 };
 
 /**
- * Enum for ardunio gestures.
+ * Enum for arduino gestures.
  * @readonly
  * @enum {string}
  */
-const ArdunioGestures = {
+const ArduinoGestures = {
     MOVED: 'moved',
     SHAKEN: 'shaken',
     JUMPED: 'jumped'
 };
 
 /**
- * Enum for ardunio buttons.
+ * Enum for arduino buttons.
  * @readonly
  * @enum {string}
  */
-const ArdunioButtons = {
+const ArduinoButtons = {
     A: 'A',
     B: 'B',
     ANY: 'any'
 };
 
 /**
- * Enum for ardunio pin states.
+ * Enum for arduino pin states.
  * @readonly
  * @enum {string}
  */
-const ArdunioPinState = {
+const ArduinoPinState = {
     ON: 'on',
     OFF: 'off'
 };
 
 /**
- * Scratch 3.0 blocks to interact with a Ardunio peripheral.
+ * Scratch 3.0 blocks to interact with a Arduino peripheral.
  */
-class Scratch3ArdunioBlocks {
+class Scratch3ArduinoBlocks {
 
     /**
      * @return {string} - the name of this extension.
      */
     static get EXTENSION_NAME () {
-        return 'ardunio';
+        return 'arduino';
     }
 
     /**
      * @return {string} - the ID of this extension.
      */
     static get EXTENSION_ID () {
-        return 'ardunio';
+        return 'arduino';
     }
 
     /**
@@ -435,19 +435,19 @@ class Scratch3ArdunioBlocks {
         return [
             {
                 text: 'A',
-                value: ArdunioButtons.A
+                value: ArduinoButtons.A
             },
             {
                 text: 'B',
-                value: ArdunioButtons.B
+                value: ArduinoButtons.B
             },
             {
                 text: formatMessage({
-                    id: 'ardunio.buttonsMenu.any',
+                    id: 'arduino.buttonsMenu.any',
                     default: 'any',
-                    description: 'label for "any" element in button picker for ardunio extension'
+                    description: 'label for "any" element in button picker for arduino extension'
                 }),
-                value: ArdunioButtons.ANY
+                value: ArduinoButtons.ANY
             }
         ];
     }
@@ -459,27 +459,27 @@ class Scratch3ArdunioBlocks {
         return [
             {
                 text: formatMessage({
-                    id: 'ardunio.gesturesMenu.moved',
+                    id: 'arduino.gesturesMenu.moved',
                     default: 'moved',
-                    description: 'label for moved gesture in gesture picker for ardunio extension'
+                    description: 'label for moved gesture in gesture picker for arduino extension'
                 }),
-                value: ArdunioGestures.MOVED
+                value: ArduinoGestures.MOVED
             },
             {
                 text: formatMessage({
-                    id: 'ardunio.gesturesMenu.shaken',
+                    id: 'arduino.gesturesMenu.shaken',
                     default: 'shaken',
-                    description: 'label for shaken gesture in gesture picker for ardunio extension'
+                    description: 'label for shaken gesture in gesture picker for arduino extension'
                 }),
-                value: ArdunioGestures.SHAKEN
+                value: ArduinoGestures.SHAKEN
             },
             {
                 text: formatMessage({
-                    id: 'ardunio.gesturesMenu.jumped',
+                    id: 'arduino.gesturesMenu.jumped',
                     default: 'jumped',
-                    description: 'label for jumped gesture in gesture picker for ardunio extension'
+                    description: 'label for jumped gesture in gesture picker for arduino extension'
                 }),
-                value: ArdunioGestures.JUMPED
+                value: ArduinoGestures.JUMPED
             }
         ];
     }
@@ -491,19 +491,19 @@ class Scratch3ArdunioBlocks {
         return [
             {
                 text: formatMessage({
-                    id: 'ardunio.pinStateMenu.on',
+                    id: 'arduino.pinStateMenu.on',
                     default: 'on',
-                    description: 'label for on element in pin state picker for ardunio extension'
+                    description: 'label for on element in pin state picker for arduino extension'
                 }),
-                value: ArdunioPinState.ON
+                value: ArduinoPinState.ON
             },
             {
                 text: formatMessage({
-                    id: 'ardunio.pinStateMenu.off',
+                    id: 'arduino.pinStateMenu.off',
                     default: 'off',
-                    description: 'label for off element in pin state picker for ardunio extension'
+                    description: 'label for off element in pin state picker for arduino extension'
                 }),
-                value: ArdunioPinState.OFF
+                value: ArduinoPinState.OFF
             }
         ];
     }
@@ -515,35 +515,35 @@ class Scratch3ArdunioBlocks {
         return [
             {
                 text: formatMessage({
-                    id: 'ardunio.tiltDirectionMenu.front',
+                    id: 'arduino.tiltDirectionMenu.front',
                     default: 'front',
-                    description: 'label for front element in tilt direction picker for ardunio extension'
+                    description: 'label for front element in tilt direction picker for arduino extension'
                 }),
-                value: ArdunioTiltDirection.FRONT
+                value: ArduinoTiltDirection.FRONT
             },
             {
                 text: formatMessage({
-                    id: 'ardunio.tiltDirectionMenu.back',
+                    id: 'arduino.tiltDirectionMenu.back',
                     default: 'back',
-                    description: 'label for back element in tilt direction picker for ardunio extension'
+                    description: 'label for back element in tilt direction picker for arduino extension'
                 }),
-                value: ArdunioTiltDirection.BACK
+                value: ArduinoTiltDirection.BACK
             },
             {
                 text: formatMessage({
-                    id: 'ardunio.tiltDirectionMenu.left',
+                    id: 'arduino.tiltDirectionMenu.left',
                     default: 'left',
-                    description: 'label for left element in tilt direction picker for ardunio extension'
+                    description: 'label for left element in tilt direction picker for arduino extension'
                 }),
-                value: ArdunioTiltDirection.LEFT
+                value: ArduinoTiltDirection.LEFT
             },
             {
                 text: formatMessage({
-                    id: 'ardunio.tiltDirectionMenu.right',
+                    id: 'arduino.tiltDirectionMenu.right',
                     default: 'right',
-                    description: 'label for right element in tilt direction picker for ardunio extension'
+                    description: 'label for right element in tilt direction picker for arduino extension'
                 }),
-                value: ArdunioTiltDirection.RIGHT
+                value: ArduinoTiltDirection.RIGHT
             }
         ];
     }
@@ -556,17 +556,17 @@ class Scratch3ArdunioBlocks {
             ...this.TILT_DIRECTION_MENU,
             {
                 text: formatMessage({
-                    id: 'ardunio.tiltDirectionMenu.any',
+                    id: 'arduino.tiltDirectionMenu.any',
                     default: 'any',
-                    description: 'label for any direction element in tilt direction picker for ardunio extension'
+                    description: 'label for any direction element in tilt direction picker for arduino extension'
                 }),
-                value: ArdunioTiltDirection.ANY
+                value: ArduinoTiltDirection.ANY
             }
         ];
     }
 
     /**
-     * Construct a set of Ardunio blocks.
+     * Construct a set of Arduino blocks.
      * @param {Runtime} runtime - the Scratch 3.0 runtime.
      */
     constructor (runtime) {
@@ -576,8 +576,8 @@ class Scratch3ArdunioBlocks {
          */
         this.runtime = runtime;
 
-        // Create a new Ardunio peripheral instance
-        this._peripheral = new Ardunio(this.runtime, Scratch3ArdunioBlocks.EXTENSION_ID);
+        // Create a new Arduino peripheral instance
+        this._peripheral = new Arduino(this.runtime, Scratch3ArduinoBlocks.EXTENSION_ID);
     }
 
     /**
@@ -585,40 +585,40 @@ class Scratch3ArdunioBlocks {
      */
     getInfo () {
         return {
-            id: Scratch3ArdunioBlocks.EXTENSION_ID,
-            name: Scratch3ArdunioBlocks.EXTENSION_NAME,
+            id: Scratch3ArduinoBlocks.EXTENSION_ID,
+            name: Scratch3ArduinoBlocks.EXTENSION_NAME,
             blockIconURI: blockIconURI,
             showStatusButton: true,
             blocks: [
                 {
                     opcode: 'whenButtonPressed',
                     text: formatMessage({
-                        id: 'ardunio.whenButtonPressed',
+                        id: 'arduino.whenButtonPressed',
                         default: 'when [BTN] button pressed',
-                        description: 'when the selected button on the ardunio is pressed'
+                        description: 'when the selected button on the arduino is pressed'
                     }),
                     blockType: BlockType.HAT,
                     arguments: {
                         BTN: {
                             type: ArgumentType.STRING,
                             menu: 'buttons',
-                            defaultValue: ArdunioButtons.A
+                            defaultValue: ArduinoButtons.A
                         }
                     }
                 },
                 {
                     opcode: 'isButtonPressed',
                     text: formatMessage({
-                        id: 'ardunio.isButtonPressed',
+                        id: 'arduino.isButtonPressed',
                         default: '[BTN] button pressed?',
-                        description: 'is the selected button on the ardunio pressed?'
+                        description: 'is the selected button on the arduino pressed?'
                     }),
                     blockType: BlockType.BOOLEAN,
                     arguments: {
                         BTN: {
                             type: ArgumentType.STRING,
                             menu: 'buttons',
-                            defaultValue: ArdunioButtons.A
+                            defaultValue: ArduinoButtons.A
                         }
                     }
                 },
@@ -626,16 +626,16 @@ class Scratch3ArdunioBlocks {
                 {
                     opcode: 'whenGesture',
                     text: formatMessage({
-                        id: 'ardunio.whenGesture',
+                        id: 'arduino.whenGesture',
                         default: 'when [GESTURE]',
-                        description: 'when the selected gesture is detected by the ardunio'
+                        description: 'when the selected gesture is detected by the arduino'
                     }),
                     blockType: BlockType.HAT,
                     arguments: {
                         GESTURE: {
                             type: ArgumentType.STRING,
                             menu: 'gestures',
-                            defaultValue: ArdunioGestures.MOVED
+                            defaultValue: ArduinoGestures.MOVED
                         }
                     }
                 },
@@ -643,9 +643,9 @@ class Scratch3ArdunioBlocks {
                 {
                     opcode: 'displaySymbol',
                     text: formatMessage({
-                        id: 'ardunio.displaySymbol',
+                        id: 'arduino.displaySymbol',
                         default: 'display [MATRIX]',
-                        description: 'display a pattern on the ardunio display'
+                        description: 'display a pattern on the arduino display'
                     }),
                     blockType: BlockType.COMMAND,
                     arguments: {
@@ -658,23 +658,23 @@ class Scratch3ArdunioBlocks {
                 {
                     opcode: 'displayText',
                     text: formatMessage({
-                        id: 'ardunio.displayText',
+                        id: 'arduino.displayText',
                         default: 'display text [TEXT]',
-                        description: 'display text on the ardunio display'
+                        description: 'display text on the arduino display'
                     }),
                     blockType: BlockType.COMMAND,
                     arguments: {
                         TEXT: {
                             type: ArgumentType.STRING,
                             defaultValue: formatMessage({
-                                id: 'ardunio.defaultTextToDisplay',
+                                id: 'arduino.defaultTextToDisplay',
                                 default: 'Hello!',
                                 description: `default text to display.
-                                IMPORTANT - the ardunio only supports letters a-z, A-Z.
+                                IMPORTANT - the arduino only supports letters a-z, A-Z.
                                 Please substitute a default word in your language
                                 that can be written with those characters,
                                 substitute non-accented characters or leave it as "Hello!".
-                                Check the ardunio site documentation for details`
+                                Check the arduino site documentation for details`
                             })
                         }
                     }
@@ -682,9 +682,9 @@ class Scratch3ArdunioBlocks {
                 {
                     opcode: 'displayClear',
                     text: formatMessage({
-                        id: 'ardunio.clearDisplay',
+                        id: 'arduino.clearDisplay',
                         default: 'clear display',
-                        description: 'display nothing on the ardunio display'
+                        description: 'display nothing on the arduino display'
                     }),
                     blockType: BlockType.COMMAND
                 },
@@ -692,48 +692,48 @@ class Scratch3ArdunioBlocks {
                 {
                     opcode: 'whenTilted',
                     text: formatMessage({
-                        id: 'ardunio.whenTilted',
+                        id: 'arduino.whenTilted',
                         default: 'when tilted [DIRECTION]',
-                        description: 'when the ardunio is tilted in a direction'
+                        description: 'when the arduino is tilted in a direction'
                     }),
                     blockType: BlockType.HAT,
                     arguments: {
                         DIRECTION: {
                             type: ArgumentType.STRING,
                             menu: 'tiltDirectionAny',
-                            defaultValue: ArdunioTiltDirection.ANY
+                            defaultValue: ArduinoTiltDirection.ANY
                         }
                     }
                 },
                 {
                     opcode: 'isTilted',
                     text: formatMessage({
-                        id: 'ardunio.isTilted',
+                        id: 'arduino.isTilted',
                         default: 'tilted [DIRECTION]?',
-                        description: 'is the ardunio is tilted in a direction?'
+                        description: 'is the arduino is tilted in a direction?'
                     }),
                     blockType: BlockType.BOOLEAN,
                     arguments: {
                         DIRECTION: {
                             type: ArgumentType.STRING,
                             menu: 'tiltDirectionAny',
-                            defaultValue: ArdunioTiltDirection.ANY
+                            defaultValue: ArduinoTiltDirection.ANY
                         }
                     }
                 },
                 {
                     opcode: 'getTiltAngle',
                     text: formatMessage({
-                        id: 'ardunio.tiltAngle',
+                        id: 'arduino.tiltAngle',
                         default: 'tilt angle [DIRECTION]',
-                        description: 'how much the ardunio is tilted in a direction'
+                        description: 'how much the arduino is tilted in a direction'
                     }),
                     blockType: BlockType.REPORTER,
                     arguments: {
                         DIRECTION: {
                             type: ArgumentType.STRING,
                             menu: 'tiltDirection',
-                            defaultValue: ArdunioTiltDirection.FRONT
+                            defaultValue: ArduinoTiltDirection.FRONT
                         }
                     }
                 },
@@ -741,7 +741,7 @@ class Scratch3ArdunioBlocks {
                 {
                     opcode: 'whenPinConnected',
                     text: formatMessage({
-                        id: 'ardunio.whenPinConnected',
+                        id: 'arduino.whenPinConnected',
                         default: 'when pin [PIN] connected',
                         description: 'when the pin detects a connection to Earth/Ground'
 
@@ -818,9 +818,9 @@ class Scratch3ArdunioBlocks {
     }
 
     /**
-     * Test whether the ardunio is moving
+     * Test whether the arduino is moving
      * @param {object} args - the block's arguments.
-     * @return {boolean} - true if the ardunio is moving.
+     * @return {boolean} - true if the arduino is moving.
      */
     whenGesture (args) {
         const gesture = cast.toString(args.GESTURE);
@@ -939,11 +939,11 @@ class Scratch3ArdunioBlocks {
      */
     _isTilted (direction) {
         switch (direction) {
-        case ArdunioTiltDirection.ANY:
-            return (Math.abs(this._peripheral.tiltX / 10) >= Scratch3ArdunioBlocks.TILT_THRESHOLD) ||
-                (Math.abs(this._peripheral.tiltY / 10) >= Scratch3ArdunioBlocks.TILT_THRESHOLD);
+        case ArduinoTiltDirection.ANY:
+            return (Math.abs(this._peripheral.tiltX / 10) >= Scratch3ArduinoBlocks.TILT_THRESHOLD) ||
+                (Math.abs(this._peripheral.tiltY / 10) >= Scratch3ArduinoBlocks.TILT_THRESHOLD);
         default:
-            return this._getTiltAngle(direction) >= Scratch3ArdunioBlocks.TILT_THRESHOLD;
+            return this._getTiltAngle(direction) >= Scratch3ArduinoBlocks.TILT_THRESHOLD;
         }
     }
 
@@ -955,13 +955,13 @@ class Scratch3ArdunioBlocks {
      */
     _getTiltAngle (direction) {
         switch (direction) {
-        case ArdunioTiltDirection.FRONT:
+        case ArduinoTiltDirection.FRONT:
             return Math.round(this._peripheral.tiltY / -10);
-        case ArdunioTiltDirection.BACK:
+        case ArduinoTiltDirection.BACK:
             return Math.round(this._peripheral.tiltY / 10);
-        case ArdunioTiltDirection.LEFT:
+        case ArduinoTiltDirection.LEFT:
             return Math.round(this._peripheral.tiltX / -10);
-        case ArdunioTiltDirection.RIGHT:
+        case ArduinoTiltDirection.RIGHT:
             return Math.round(this._peripheral.tiltX / 10);
         default:
             log.warn(`Unknown tilt direction in _getTiltAngle: ${direction}`);
@@ -981,4 +981,4 @@ class Scratch3ArdunioBlocks {
     }
 }
 
-module.exports = Scratch3ArdunioBlocks;
+module.exports = Scratch3ArduinoBlocks;
