@@ -289,14 +289,14 @@ class Arduino {
             this._busy = false;
         }, 5000);
 
-        const output = new Uint8Array(message.length + 1);
-        output[0] = command; // attach command to beginning of message
-        for (let i = 0; i < message.length; i++) {
-            output[i + 1] = message[i];
-        }
-        const data = Base64Util.uint8ArrayToBase64(output);
+        // const output = new Uint8Array(message.length + 1);
+        // output[0] = command; // attach command to beginning of message
+        // for (let i = 0; i < message.length; i++) {
+        //     output[i + 1] = message[i];
+        // }
+        // const data = Base64Util.uint8ArrayToBase64(output);
 
-        this._arduino.write(BLEUUID.service, BLEUUID.txChar, data, 'base64', true).then(
+        this._arduino.write(BLEUUID.service, BLEUUID.txChar, message, 'base64', true).then(
             () => {
                 this._busy = false;
                 window.clearTimeout(this._busyTimeoutID);
@@ -387,10 +387,20 @@ const ArduinoGestures = {
  * @enum {string}
  */
 const ArduinoPins = {
-    _2: '2',
-    _3: '3',
-    _4: '3',
-    _3: '3' 
+    0: '0',
+    1: '1',
+    2: '2',
+    3: '3',
+    4: '4',
+    5: '5' ,
+    6: '6' ,
+    7: '7' ,
+    8: '8' ,
+    9: '9' ,
+    10: '10' ,
+    11: '11' ,
+    12: '12'  ,
+    13: '13' 
 };
 
 /**
@@ -436,11 +446,11 @@ class Scratch3ArduinoBlocks {
         return [
             {
                 text: 'A',
-                value: ArduinoButtons.A
+                value: ArduinoPins.A
             },
             {
                 text: 'B',
-                value: ArduinoButtons.B
+                value: ArduinoPins.B
             },
             {
                 text: formatMessage({
@@ -448,7 +458,7 @@ class Scratch3ArduinoBlocks {
                     default: 'any',
                     description: 'label for "any" element in button picker for arduino extension'
                 }),
-                value: ArduinoButtons.ANY
+                value: ArduinoPins.ANY
             }
         ];
     }
@@ -592,6 +602,23 @@ class Scratch3ArduinoBlocks {
             showStatusButton: true,
             blocks: [
                 {
+                    opcode: 'digital_write',
+                    blockType: BlockType.COMMAND,
+                    text: 'Set Digital Pin [PIN] to [ON_OFF]',
+                    arguments: {
+                        PIN: {
+                            type: ArgumentType.NUMBER,
+                            defaultValue: '7',
+                            menu: "digital_pins"
+                        },
+                        ON_OFF: {
+                            type: ArgumentType.NUMBER,
+                            defaultValue: '0',
+                            menu: "on_off"
+                        }
+                    }
+                },
+                {
                     opcode: 'whenButtonPressed',
                     text: formatMessage({
                         id: 'arduino.whenButtonPressed',
@@ -603,7 +630,7 @@ class Scratch3ArduinoBlocks {
                         BTN: {
                             type: ArgumentType.STRING,
                             menu: 'buttons',
-                            defaultValue: ArduinoButtons.A
+                            defaultValue: ArduinoPins.A
                         }
                     }
                 },
@@ -619,7 +646,7 @@ class Scratch3ArduinoBlocks {
                         BTN: {
                             type: ArgumentType.STRING,
                             menu: 'buttons',
-                            defaultValue: ArduinoButtons.A
+                            defaultValue: ArduinoPins.A
                         }
                     }
                 },
@@ -758,6 +785,15 @@ class Scratch3ArduinoBlocks {
                 }
             ],
             menus: {
+                digital_pins: {
+                    acceptReporters: true,
+                    items: ['2', '3', '4', '5', '6', '7', '8', '9', '10', '11',
+                        '12', '13', '14', '15', '16', '17', '18', '19']
+                },
+                on_off: {
+                    acceptReporters: true,
+                    items: [{text: "0", value: 0}, {text: "1", value: 1}]
+                },
                 buttons: {
                     acceptReporters: true,
                     items: this.BUTTONS_MENU
@@ -786,6 +822,47 @@ class Scratch3ArduinoBlocks {
         };
     }
 
+    digital_write(args) {
+        console.log(args);
+        
+        let pin = args['PIN'];
+        pin = parseInt(pin, 10);
+
+        let value = args['ON_OFF'];
+        value = parseInt(value, 10);
+        msg = {"command": "digital_write", "pin": pin, "value": value};
+        // msg = JSON.stringify(msg);
+        this._peripheral.send( "digital_write", msg);
+
+        
+        // if (!connected) {
+        //     if (!connection_pending) {
+        //         this.connect();
+        //         connection_pending = true;
+        //     }
+
+        // }
+
+        // if (!connected) {
+        //     let callbackEntry = [this.digital_write.bind(this), args];
+        //     wait_open.push(callbackEntry);
+        // } else {
+        //     let pin = args['PIN'];
+        //     pin = parseInt(pin, 10);
+
+        //     if (pin_modes[pin] !== DIGITAL_OUTPUT) {
+        //         pin_modes[pin] = DIGITAL_OUTPUT;
+        //         msg = {"command": "set_mode_digital_output", "pin": pin};
+        //         msg = JSON.stringify(msg);
+        //         window.socket.send(msg);
+        //     }
+        //     let value = args['ON_OFF'];
+        //     value = parseInt(value, 10);
+        //     msg = {"command": "digital_write", "pin": pin, "value": value};
+        //     msg = JSON.stringify(msg);
+        //     window.socket.send(msg);
+        // }
+    }
     /**
      * Test whether the A or B button is pressed
      * @param {object} args - the block's arguments.
