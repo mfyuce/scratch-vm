@@ -309,11 +309,11 @@ class Arduino {
      * @private
      */
     _onConnect () {
-        this._arduino.read(BLEUUID.service, BLEUUID.rxChar, true, this._onMessage);
-        this._timeoutID = window.setTimeout(
-            () => this._arduino.handleDisconnectError(BLEDataStoppedError),
-            BLETimeout
-        );
+        // this._arduino.read(BLEUUID.service, BLEUUID.rxChar, true, this._onMessage);
+        // this._timeoutID = window.setTimeout(
+        //     () => this._arduino.handleDisconnectError(BLEDataStoppedError),
+        //     BLETimeout
+        // );
     }
 
     /**
@@ -386,10 +386,11 @@ const ArduinoGestures = {
  * @readonly
  * @enum {string}
  */
-const ArduinoButtons = {
-    A: 'A',
-    B: 'B',
-    ANY: 'any'
+const ArduinoPins = {
+    _2: '2',
+    _3: '3',
+    _4: '3',
+    _3: '3' 
 };
 
 /**
