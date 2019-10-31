@@ -422,14 +422,14 @@ class Scratch3ArduinoBlocks {
      * @return {string} - the name of this extension.
      */
     static get EXTENSION_NAME () {
-        return 'arduino';
+        return 'pinoo';
     }
 
     /**
      * @return {string} - the ID of this extension.
      */
     static get EXTENSION_ID () {
-        return 'arduino';
+        return 'pinoo';
     }
 
     /**
