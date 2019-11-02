@@ -296,10 +296,11 @@ class Arduino {
         // }
         // const data = Base64Util.uint8ArrayToBase64(output);
 
-        this._arduino.write(BLEUUID.service, BLEUUID.txChar, message, 'base64', true).then(
-            () => {
+        return this._arduino.write(BLEUUID.service, BLEUUID.txChar, message, 'base64', true).then(
+            (readValue,b,c) => {
                 this._busy = false;
                 window.clearTimeout(this._busyTimeoutID);
+                return readValue; 
             }
         );
     }
@@ -604,7 +605,7 @@ class Scratch3ArduinoBlocks {
                 {
                     opcode: 'digital_write',
                     blockType: BlockType.COMMAND,
-                    text: 'Set Digital Pin [PIN] to [ON_OFF]',
+                    text: 'Set Pin [PIN] to [ON_OFF]',
                     arguments: {
                         PIN: {
                             type: ArgumentType.NUMBER,
@@ -617,20 +618,41 @@ class Scratch3ArduinoBlocks {
                             menu: "on_off"
                         }
                     }
+                },{
+                    opcode: 'set_pin_mode',
+                    blockType: BlockType.COMMAND,
+                    text: 'Set Pin [PIN] mode to [PIN_MODE]',
+                    arguments: {
+                        PIN: {
+                            type: ArgumentType.NUMBER,
+                            defaultValue: '7',
+                            menu: "digital_pins"
+                        },
+                        ON_OFF: {
+                            type: ArgumentType.NUMBER,
+                            defaultValue: '0',
+                            menu: "pin_mode"
+                        }
+                    }
                 },
                 {
-                    opcode: 'whenButtonPressed',
+                    opcode: 'doesPinEquals',
                     text: formatMessage({
-                        id: 'arduino.whenButtonPressed',
-                        default: 'when [BTN] button pressed',
-                        description: 'when the selected button on the arduino is pressed'
+                        id: 'arduino.whenPinEquals',
+                        default: 'when pin [PIN] is [ON_OFF]',
+                        description: 'when a pin is on or off'
                     }),
-                    blockType: BlockType.HAT,
+                    blockType: BlockType.BOOLEAN,
                     arguments: {
-                        BTN: {
-                            type: ArgumentType.STRING,
-                            menu: 'buttons',
-                            defaultValue: ArduinoPins.A
+                        PIN: {
+                            type: ArgumentType.NUMBER,
+                            defaultValue: '7',
+                            menu: "digital_pins"
+                        },
+                        ON_OFF: {
+                            type: ArgumentType.NUMBER,
+                            defaultValue: '0',
+                            menu: "on_off"
                         }
                     }
                 },
@@ -794,6 +816,10 @@ class Scratch3ArduinoBlocks {
                     acceptReporters: true,
                     items: [{text: "0", value: 0}, {text: "1", value: 1}]
                 },
+                pin_mode: {
+                    acceptReporters: true,
+                    items: [{text: "INPUT", value: 0}, {text: "OUTPUT", value: 1}]
+                },
                 buttons: {
                     acceptReporters: true,
                     items: this.BUTTONS_MENU
@@ -831,37 +857,17 @@ class Scratch3ArduinoBlocks {
         let value = args['ON_OFF'];
         value = parseInt(value, 10);
         msg = {"command": "digital_write", "pin": pin, "value": value};
-        // msg = JSON.stringify(msg);
-        this._peripheral.send( "digital_write", msg);
+        return this._peripheral.send( "digital_write", msg);
+ 
+    }
+    set_pin_mode(args) { 
+        let pin = args['PIN'];
+        pin = parseInt(pin, 10);
 
-        
-        // if (!connected) {
-        //     if (!connection_pending) {
-        //         this.connect();
-        //         connection_pending = true;
-        //     }
-
-        // }
-
-        // if (!connected) {
-        //     let callbackEntry = [this.digital_write.bind(this), args];
-        //     wait_open.push(callbackEntry);
-        // } else {
-        //     let pin = args['PIN'];
-        //     pin = parseInt(pin, 10);
-
-        //     if (pin_modes[pin] !== DIGITAL_OUTPUT) {
-        //         pin_modes[pin] = DIGITAL_OUTPUT;
-        //         msg = {"command": "set_mode_digital_output", "pin": pin};
-        //         msg = JSON.stringify(msg);
-        //         window.socket.send(msg);
-        //     }
-        //     let value = args['ON_OFF'];
-        //     value = parseInt(value, 10);
-        //     msg = {"command": "digital_write", "pin": pin, "value": value};
-        //     msg = JSON.stringify(msg);
-        //     window.socket.send(msg);
-        // }
+        let value = args['PIN_MODE'];
+        value = parseInt(value, 10);
+        msg = {"command": "set_pin_mode", "pin": pin, "value": value};
+        return this._peripheral.send( "digital_write", msg);
     }
     /**
      * Test whether the A or B button is pressed
@@ -879,6 +885,24 @@ class Scratch3ArduinoBlocks {
         return false;
     }
 
+    /**
+     * Test whether the A or B button is pressed
+     * @param {object} args - the block's arguments.
+     * @return {boolean} - true if the button is pressed.
+     */
+    doesPinEquals (args) {
+        
+        let pin = args['PIN'];
+        pin = parseInt(pin, 10);
+
+        let valueStr = args['ON_OFF'];
+        value = parseInt(valueStr, 10);
+        msg = {"command": "digital_read", "pin": pin};
+        // msg = JSON.stringify(msg);
+        return this._peripheral.send( "digital_read", msg).then(currentValue=>{
+            return currentValue === valueStr;
+        });
+    }
     /**
      * Test whether the A or B button is pressed
      * @param {object} args - the block's arguments.
