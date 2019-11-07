@@ -655,156 +655,18 @@ class Scratch3ArduinoBlocks {
                             menu: "on_off"
                         }
                     }
-                },
+                } ,
                 {
-                    opcode: 'isButtonPressed',
+                    opcode: 'uploadDevMode',
                     text: formatMessage({
-                        id: 'arduino.isButtonPressed',
-                        default: '[BTN] button pressed?',
-                        description: 'is the selected button on the arduino pressed?'
-                    }),
-                    blockType: BlockType.BOOLEAN,
-                    arguments: {
-                        BTN: {
-                            type: ArgumentType.STRING,
-                            menu: 'buttons',
-                            defaultValue: ArduinoPins.A
-                        }
-                    }
-                },
-                '---',
-                {
-                    opcode: 'whenGesture',
-                    text: formatMessage({
-                        id: 'arduino.whenGesture',
-                        default: 'when [GESTURE]',
-                        description: 'when the selected gesture is detected by the arduino'
-                    }),
-                    blockType: BlockType.HAT,
-                    arguments: {
-                        GESTURE: {
-                            type: ArgumentType.STRING,
-                            menu: 'gestures',
-                            defaultValue: ArduinoGestures.MOVED
-                        }
-                    }
-                },
-                '---',
-                {
-                    opcode: 'displaySymbol',
-                    text: formatMessage({
-                        id: 'arduino.displaySymbol',
-                        default: 'display [MATRIX]',
-                        description: 'display a pattern on the arduino display'
-                    }),
+                        id: 'arduino.uploadDevMode',
+                        default: 'Upload Dev Mode Script',
+                        description: 'Upload Dev Mode Script'
+                     }),
                     blockType: BlockType.COMMAND,
-                    arguments: {
-                        MATRIX: {
-                            type: ArgumentType.MATRIX,
-                            defaultValue: '0101010101100010101000100'
-                        }
+                    arguments: { 
                     }
-                },
-                {
-                    opcode: 'displayText',
-                    text: formatMessage({
-                        id: 'arduino.displayText',
-                        default: 'display text [TEXT]',
-                        description: 'display text on the arduino display'
-                    }),
-                    blockType: BlockType.COMMAND,
-                    arguments: {
-                        TEXT: {
-                            type: ArgumentType.STRING,
-                            defaultValue: formatMessage({
-                                id: 'arduino.defaultTextToDisplay',
-                                default: 'Hello!',
-                                description: `default text to display.
-                                IMPORTANT - the arduino only supports letters a-z, A-Z.
-                                Please substitute a default word in your language
-                                that can be written with those characters,
-                                substitute non-accented characters or leave it as "Hello!".
-                                Check the arduino site documentation for details`
-                            })
-                        }
-                    }
-                },
-                {
-                    opcode: 'displayClear',
-                    text: formatMessage({
-                        id: 'arduino.clearDisplay',
-                        default: 'clear display',
-                        description: 'display nothing on the arduino display'
-                    }),
-                    blockType: BlockType.COMMAND
-                },
-                '---',
-                {
-                    opcode: 'whenTilted',
-                    text: formatMessage({
-                        id: 'arduino.whenTilted',
-                        default: 'when tilted [DIRECTION]',
-                        description: 'when the arduino is tilted in a direction'
-                    }),
-                    blockType: BlockType.HAT,
-                    arguments: {
-                        DIRECTION: {
-                            type: ArgumentType.STRING,
-                            menu: 'tiltDirectionAny',
-                            defaultValue: ArduinoTiltDirection.ANY
-                        }
-                    }
-                },
-                {
-                    opcode: 'isTilted',
-                    text: formatMessage({
-                        id: 'arduino.isTilted',
-                        default: 'tilted [DIRECTION]?',
-                        description: 'is the arduino is tilted in a direction?'
-                    }),
-                    blockType: BlockType.BOOLEAN,
-                    arguments: {
-                        DIRECTION: {
-                            type: ArgumentType.STRING,
-                            menu: 'tiltDirectionAny',
-                            defaultValue: ArduinoTiltDirection.ANY
-                        }
-                    }
-                },
-                {
-                    opcode: 'getTiltAngle',
-                    text: formatMessage({
-                        id: 'arduino.tiltAngle',
-                        default: 'tilt angle [DIRECTION]',
-                        description: 'how much the arduino is tilted in a direction'
-                    }),
-                    blockType: BlockType.REPORTER,
-                    arguments: {
-                        DIRECTION: {
-                            type: ArgumentType.STRING,
-                            menu: 'tiltDirection',
-                            defaultValue: ArduinoTiltDirection.FRONT
-                        }
-                    }
-                },
-                '---',
-                {
-                    opcode: 'whenPinConnected',
-                    text: formatMessage({
-                        id: 'arduino.whenPinConnected',
-                        default: 'when pin [PIN] connected',
-                        description: 'when the pin detects a connection to Earth/Ground'
-
-                    }),
-                    blockType: BlockType.HAT,
-                    arguments: {
-                        PIN: {
-                            type: ArgumentType.STRING,
-                            menu: 'touchPins',
-                            defaultValue: '0'
-                        }
-                    }
-                }
+                } 
             ],
             menus: {
                 digital_pins: {
@@ -868,22 +730,7 @@ class Scratch3ArduinoBlocks {
         value = parseInt(value, 10);
         msg = {"command": "set_pin_mode", "pin": pin, "value": value};
         return this._peripheral.send( "digital_write", msg);
-    }
-    /**
-     * Test whether the A or B button is pressed
-     * @param {object} args - the block's arguments.
-     * @return {boolean} - true if the button is pressed.
-     */
-    whenButtonPressed (args) {
-        if (args.BTN === 'any') {
-            return this._peripheral.buttonA | this._peripheral.buttonB;
-        } else if (args.BTN === 'A') {
-            return this._peripheral.buttonA;
-        } else if (args.BTN === 'B') {
-            return this._peripheral.buttonB;
-        }
-        return false;
-    }
+    } 
 
     /**
      * Test whether the A or B button is pressed
@@ -904,183 +751,17 @@ class Scratch3ArduinoBlocks {
         });
     }
     /**
-     * Test whether the A or B button is pressed
+     * Upload dev mode script
      * @param {object} args - the block's arguments.
-     * @return {boolean} - true if the button is pressed.
+     * @return {boolean} - true if the dev mode is uploaded.
      */
-    isButtonPressed (args) {
-        if (args.BTN === 'any') {
-            return (this._peripheral.buttonA | this._peripheral.buttonB) !== 0;
-        } else if (args.BTN === 'A') {
-            return this._peripheral.buttonA !== 0;
-        } else if (args.BTN === 'B') {
-            return this._peripheral.buttonB !== 0;
-        }
-        return false;
-    }
-
-    /**
-     * Test whether the arduino is moving
-     * @param {object} args - the block's arguments.
-     * @return {boolean} - true if the arduino is moving.
-     */
-    whenGesture (args) {
-        const gesture = cast.toString(args.GESTURE);
-        if (gesture === 'moved') {
-            return (this._peripheral.gestureState >> 2) & 1;
-        } else if (gesture === 'shaken') {
-            return this._peripheral.gestureState & 1;
-        } else if (gesture === 'jumped') {
-            return (this._peripheral.gestureState >> 1) & 1;
-        }
-        return false;
-    }
-
-    /**
-     * Display a predefined symbol on the 5x5 LED matrix.
-     * @param {object} args - the block's arguments.
-     * @return {Promise} - a Promise that resolves after a tick.
-     */
-    displaySymbol (args) {
-        const symbol = cast.toString(args.MATRIX).replace(/\s/g, '');
-        const reducer = (accumulator, c, index) => {
-            const value = (c === '0') ? accumulator : accumulator + Math.pow(2, index);
-            return value;
-        };
-        const hex = symbol.split('').reduce(reducer, 0);
-        if (hex !== null) {
-            this._peripheral.ledMatrixState[0] = hex & 0x1F;
-            this._peripheral.ledMatrixState[1] = (hex >> 5) & 0x1F;
-            this._peripheral.ledMatrixState[2] = (hex >> 10) & 0x1F;
-            this._peripheral.ledMatrixState[3] = (hex >> 15) & 0x1F;
-            this._peripheral.ledMatrixState[4] = (hex >> 20) & 0x1F;
-            this._peripheral.displayMatrix(this._peripheral.ledMatrixState);
-        }
-
-        return new Promise(resolve => {
-            setTimeout(() => {
-                resolve();
-            }, BLESendInterval);
+    uploadDevMode (args) {
+        msg = {"command": "upload_dev_mode"};
+        // msg = JSON.stringify(msg);
+        return this._peripheral.send( "upload_dev_mode", msg).then(currentValue=>{
+            return currentValue === valueStr;
         });
-    }
-
-    /**
-     * Display text on the 5x5 LED matrix.
-     * @param {object} args - the block's arguments.
-     * @return {Promise} - a Promise that resolves after the text is done printing.
-     * Note the limit is 19 characters
-     * The print time is calculated by multiplying the number of horizontal pixels
-     * by the default scroll delay of 120ms.
-     * The number of horizontal pixels = 6px for each character in the string,
-     * 1px before the string, and 5px after the string.
-     */
-    displayText (args) {
-        const text = String(args.TEXT).substring(0, 19);
-        if (text.length > 0) this._peripheral.displayText(text);
-        const yieldDelay = 120 * ((6 * text.length) + 6);
-
-        return new Promise(resolve => {
-            setTimeout(() => {
-                resolve();
-            }, yieldDelay);
-        });
-    }
-
-    /**
-     * Turn all 5x5 matrix LEDs off.
-     * @return {Promise} - a Promise that resolves after a tick.
-     */
-    displayClear () {
-        for (let i = 0; i < 5; i++) {
-            this._peripheral.ledMatrixState[i] = 0;
-        }
-        this._peripheral.displayMatrix(this._peripheral.ledMatrixState);
-
-        return new Promise(resolve => {
-            setTimeout(() => {
-                resolve();
-            }, BLESendInterval);
-        });
-    }
-
-    /**
-     * Test whether the tilt sensor is currently tilted.
-     * @param {object} args - the block's arguments.
-     * @property {TiltDirection} DIRECTION - the tilt direction to test (front, back, left, right, or any).
-     * @return {boolean} - true if the tilt sensor is tilted past a threshold in the specified direction.
-     */
-    whenTilted (args) {
-        return this._isTilted(args.DIRECTION);
-    }
-
-    /**
-     * Test whether the tilt sensor is currently tilted.
-     * @param {object} args - the block's arguments.
-     * @property {TiltDirection} DIRECTION - the tilt direction to test (front, back, left, right, or any).
-     * @return {boolean} - true if the tilt sensor is tilted past a threshold in the specified direction.
-     */
-    isTilted (args) {
-        return this._isTilted(args.DIRECTION);
-    }
-
-    /**
-     * @param {object} args - the block's arguments.
-     * @property {TiltDirection} DIRECTION - the direction (front, back, left, right) to check.
-     * @return {number} - the tilt sensor's angle in the specified direction.
-     * Note that getTiltAngle(front) = -getTiltAngle(back) and getTiltAngle(left) = -getTiltAngle(right).
-     */
-    getTiltAngle (args) {
-        return this._getTiltAngle(args.DIRECTION);
-    }
-
-    /**
-     * Test whether the tilt sensor is currently tilted.
-     * @param {TiltDirection} direction - the tilt direction to test (front, back, left, right, or any).
-     * @return {boolean} - true if the tilt sensor is tilted past a threshold in the specified direction.
-     * @private
-     */
-    _isTilted (direction) {
-        switch (direction) {
-        case ArduinoTiltDirection.ANY:
-            return (Math.abs(this._peripheral.tiltX / 10) >= Scratch3ArduinoBlocks.TILT_THRESHOLD) ||
-                (Math.abs(this._peripheral.tiltY / 10) >= Scratch3ArduinoBlocks.TILT_THRESHOLD);
-        default:
-            return this._getTiltAngle(direction) >= Scratch3ArduinoBlocks.TILT_THRESHOLD;
-        }
-    }
-
-    /**
-     * @param {TiltDirection} direction - the direction (front, back, left, right) to check.
-     * @return {number} - the tilt sensor's angle in the specified direction.
-     * Note that getTiltAngle(front) = -getTiltAngle(back) and getTiltAngle(left) = -getTiltAngle(right).
-     * @private
-     */
-    _getTiltAngle (direction) {
-        switch (direction) {
-        case ArduinoTiltDirection.FRONT:
-            return Math.round(this._peripheral.tiltY / -10);
-        case ArduinoTiltDirection.BACK:
-            return Math.round(this._peripheral.tiltY / 10);
-        case ArduinoTiltDirection.LEFT:
-            return Math.round(this._peripheral.tiltX / -10);
-        case ArduinoTiltDirection.RIGHT:
-            return Math.round(this._peripheral.tiltX / 10);
-        default:
-            log.warn(`Unknown tilt direction in _getTiltAngle: ${direction}`);
-        }
-    }
-
-    /**
-     * @param {object} args - the block's arguments.
-     * @return {boolean} - the touch pin state.
-     * @private
-     */
-    whenPinConnected (args) {
-        const pin = parseInt(args.PIN, 10);
-        if (isNaN(pin)) return;
-        if (pin < 0 || pin > 2) return false;
-        return this._peripheral._checkPinState(pin);
-    }
+    }   
 }
 
 module.exports = Scratch3ArduinoBlocks;
