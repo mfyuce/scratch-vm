@@ -1229,6 +1229,7 @@ class Runtime extends EventEmitter {
         const buttonText = maybeFormatMessage(buttonInfo.text, extensionMessageContext);
         return {
             info: buttonInfo,
+            opcode: buttonInfo.opcode,
             xml: `<button text="${buttonText}" callbackKey="${buttonInfo.func}"></button>`
         };
     }
