@@ -18,6 +18,7 @@ const builtinExtensions = {
     music: () => require('../extensions/scratch3_music'),
     microbit: () => require('../extensions/scratch3_microbit'),
     pinoo: () => require('../extensions/scratch3_arduino'),
+    pinoosimulator: () => require('../extensions/scratch3_arduino_simulator'),
     text2speech: () => require('../extensions/scratch3_text2speech'),
     translate: () => require('../extensions/scratch3_translate'),
     videoSensing: () => require('../extensions/scratch3_video_sensing'),

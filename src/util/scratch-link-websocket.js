@@ -25,13 +25,16 @@ class ScratchLinkWebSocket {
     open () {
         switch (this._type) {
         case 'BLE':
-            this._ws = new WebSocket('wss://localhost:20110/scratch/ble');
+            this._ws = new WebSocket('wss://device-manager.scratch.mit.edu:20110/scratch/ble');
             break;
         case 'BT':
-            this._ws = new WebSocket('wss://localhost:20110/scratch/bt');
+            this._ws = new WebSocket('wss://device-manager.scratch.mit.edu:20110/scratch/bt');
             break;
         case 'ARDUINO':
-            this._ws = new WebSocket('wss://localhost:20110/scratch/arduino');
+            this._ws = new WebSocket('wss://device-manager.scratch.mit.edu:20110/scratch/arduino');
+            break;
+        case 'ARDUINO_SIMULATOR':
+            this._ws = new WebSocket('wss://device-manager.scratch.mit.edu:20110/scratch/arduinosimulator');
             break;
         default:
             throw new Error(`Unknown ScratchLink socket Type: ${this._type}`);
