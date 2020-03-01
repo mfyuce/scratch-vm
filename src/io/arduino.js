@@ -11,10 +11,10 @@ class ARDUINO extends JSONRPC {
      * @param {object} connectCallback - a callback for connection.
      * @param {object} resetCallback - a callback for resetting extension state.
      */
-    constructor (runtime, extensionId, peripheralOptions, connectCallback, resetCallback = null) {
+    constructor (runtime, extensionId, peripheralOptions, connectCallback, resetCallback = null, socketName='ARDUINO') {
         super();
 
-        this._socket = runtime.getScratchLinkSocket('ARDUINO');
+        this._socket = runtime.getScratchLinkSocket(socketName);
         this._socket.setOnOpen(this.requestPeripheral.bind(this));
         this._socket.setOnClose(this.handleDisconnectError.bind(this));
         this._socket.setOnError(this._handleRequestError.bind(this));

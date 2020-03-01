@@ -3,7 +3,7 @@ const BlockType = require('../../extension-support/block-type');
 const log = require('../../util/log');
 const cast = require('../../util/cast');
 const formatMessage = require('format-message');
-const ARDUINO = require('../../io/arduino');
+const ARDUINO = require('../../io/arduino'); 
 const Base64Util = require('../../util/base64-util');
 
 /**
@@ -56,6 +56,24 @@ const BLEUUID = {
     txChar: '5261da02-fa7e-42ab-850b-7c80220097cc'
 };
 
+
+class ARDUINO_SIMULATOR extends ARDUINO {
+
+    /**
+     * A BLE peripheral socket object.  It handles connecting, over web sockets, to
+     * BLE peripherals, and reading and writing data to them.
+     * @param {Runtime} runtime - the Runtime for sending/receiving GUI update events.
+     * @param {string} extensionId - the id of the extension using this socket.
+     * @param {object} peripheralOptions - the list of options for peripheral discovery.
+     * @param {object} connectCallback - a callback for connection.
+     * @param {object} resetCallback - a callback for resetting extension state.
+     */
+    constructor (runtime, extensionId, peripheralOptions, connectCallback, resetCallback = null) {
+        super(runtime, extensionId, peripheralOptions, connectCallback, resetCallback , 'ARDUINO_SIMULATOR' );
+    }
+ 
+}
+
 /**
  * Manage communication with a Arduino peripheral over a Scrath Link client socket.
  */
@@ -66,7 +84,7 @@ class Arduino {
      * @param {Runtime} runtime - the Scratch 3.0 runtime
      * @param {string} extensionId - the id of the extension
      */
-    constructor (runtime, extensionId) {
+    constructor(runtime, extensionId) {
 
         /**
          * The Scratch 3.0 runtime used to trigger the green flag button.
@@ -153,7 +171,7 @@ class Arduino {
      * @param {string} text - the text to display.
      * @return {Promise} - a Promise that resolves when writing to peripheral.
      */
-    displayText (text) {
+    displayText(text) {
         const output = new Uint8Array(text.length);
         for (let i = 0; i < text.length; i++) {
             output[i] = text.charCodeAt(i);
@@ -165,71 +183,81 @@ class Arduino {
      * @param {Uint8Array} matrix - the matrix to display.
      * @return {Promise} - a Promise that resolves when writing to peripheral.
      */
-    displayMatrix (matrix) {
+    displayMatrix(matrix) {
         return this.send(BLECommand.CMD_DISPLAY_LED, matrix);
     }
 
     /**
      * @return {number} - the latest value received for the tilt sensor's tilt about the X axis.
      */
-    get tiltX () {
+    get tiltX() {
         return this._sensors.tiltX;
     }
 
     /**
      * @return {number} - the latest value received for the tilt sensor's tilt about the Y axis.
      */
-    get tiltY () {
+    get tiltY() {
         return this._sensors.tiltY;
     }
 
     /**
      * @return {boolean} - the latest value received for the A button.
      */
-    get buttonA () {
+    get buttonA() {
         return this._sensors.buttonA;
     }
 
     /**
      * @return {boolean} - the latest value received for the B button.
      */
-    get buttonB () {
+    get buttonB() {
         return this._sensors.buttonB;
     }
 
     /**
      * @return {number} - the latest value received for the motion gesture states.
      */
-    get gestureState () {
+    get gestureState() {
         return this._sensors.gestureState;
     }
 
     /**
      * @return {Uint8Array} - the current state of the 5x5 LED matrix.
      */
-    get ledMatrixState () {
+    get ledMatrixState() {
         return this._sensors.ledMatrixState;
     }
 
     /**
      * Called by the runtime when user wants to scan for a peripheral.
      */
-    scan () {
+    scan() {
         if (this._arduino) {
             this._arduino.disconnect();
         }
-        this._arduino = new ARDUINO(this._runtime, this._extensionId, {
-            filters: [
-                {namePrefix: 'w'}
-            ]
-        }, this._onConnect, this.reset);
+        if(this._extensionId =="pinoosimulator"){
+
+            this._arduino = new ARDUINO_SIMULATOR(this._runtime, this._extensionId, {
+                filters: [
+                    { namePrefix: 'w' }
+                ]
+            }, this._onConnect, this.reset, 'ARDUINO_SIMULATOR');
+        }else{
+
+            this._arduino = new ARDUINO(this._runtime, this._extensionId, {
+                filters: [
+                    { namePrefix: 'w' }
+                ]
+            }, this._onConnect, this.reset); 
+        }
     }
 
     /**
      * Called by the runtime when user wants to connect to a certain peripheral.
      * @param {number} id - the id of the peripheral to connect to.
      */
-    connect (id) {
+    connect(id) {
         if (this._arduino) {
             this._arduino.connectPeripheral(id);
         }
@@ -238,7 +266,7 @@ class Arduino {
     /**
      * Disconnect from the arduino.
      */
-    disconnect () {
+    disconnect() {
         if (this._arduino) {
             this._arduino.disconnect();
         }
@@ -249,7 +277,7 @@ class Arduino {
     /**
      * Reset all the state and timeout/interval ids.
      */
-    reset () {
+    reset() {
         if (this._timeoutID) {
             window.clearTimeout(this._timeoutID);
             this._timeoutID = null;
@@ -260,7 +288,7 @@ class Arduino {
      * Return true if connected to the arduino.
      * @return {boolean} - whether the arduino is connected.
      */
-    isConnected () {
+    isConnected() {
         let connected = false;
         if (this._arduino) {
             connected = this._arduino.isConnected();
@@ -273,7 +301,7 @@ class Arduino {
      * @param {number} command - the ARDUINO command hex.
      * @param {Uint8Array} message - the message to write
      */
-    send (command, message) {
+    send(command, message) {
         if (!this.isConnected()) return;
         if (this._busy) return;
 
@@ -297,10 +325,10 @@ class Arduino {
         // const data = Base64Util.uint8ArrayToBase64(output);
 
         return this._arduino.write(BLEUUID.service, BLEUUID.txChar, message, 'base64', true).then(
-            (readValue,b,c) => {
+            (readValue, b, c) => {
                 this._busy = false;
                 window.clearTimeout(this._busyTimeoutID);
-                return readValue; 
+                return readValue;
             }
         );
     }
@@ -309,7 +337,7 @@ class Arduino {
      * Starts reading data from peripheral after ARDUINO has connected to it.
      * @private
      */
-    _onConnect () {
+    _onConnect() {
         // this._arduino.read(BLEUUID.service, BLEUUID.rxChar, true, this._onMessage);
         // this._timeoutID = window.setTimeout(
         //     () => this._arduino.handleDisconnectError(BLEDataStoppedError),
@@ -322,7 +350,7 @@ class Arduino {
      * @param {object} base64 - the incoming ARDUINO data.
      * @private
      */
-    _onMessage (base64) {
+    _onMessage(base64) {
         // parse data
         const data = Base64Util.base64ToUint8Array(base64);
 
@@ -353,7 +381,7 @@ class Arduino {
      * @return {number} - the latest value received for the touch pin states.
      * @private
      */
-    _checkPinState (pin) {
+    _checkPinState(pin) {
         return this._sensors.touchPins[pin];
     }
 }
@@ -393,15 +421,15 @@ const ArduinoPins = {
     2: '2',
     3: '3',
     4: '4',
-    5: '5' ,
-    6: '6' ,
-    7: '7' ,
-    8: '8' ,
-    9: '9' ,
-    10: '10' ,
-    11: '11' ,
-    12: '12'  ,
-    13: '13' 
+    5: '5',
+    6: '6',
+    7: '7',
+    8: '8',
+    9: '9',
+    10: '10',
+    11: '11',
+    12: '12',
+    13: '13'
 };
 
 /**
@@ -419,31 +447,32 @@ const ArduinoPinState = {
  */
 class Scratch3ArduinoBlocks {
 
+
     /**
      * @return {string} - the name of this extension.
      */
-    static get EXTENSION_NAME () {
+    static get EXTENSION_NAME() {
         return 'pinoo';
     }
 
     /**
      * @return {string} - the ID of this extension.
      */
-    static get EXTENSION_ID () {
+    static get EXTENSION_ID() {
         return 'pinoo';
     }
 
     /**
      * @return {number} - the tilt sensor counts as "tilted" if its tilt angle meets or exceeds this threshold.
      */
-    static get TILT_THRESHOLD () {
+    static get TILT_THRESHOLD() {
         return 15;
     }
 
     /**
      * @return {array} - text and values for each buttons menu element
      */
-    get BUTTONS_MENU () {
+    get BUTTONS_MENU() {
         return [
             {
                 text: 'A',
@@ -467,7 +496,7 @@ class Scratch3ArduinoBlocks {
     /**
      * @return {array} - text and values for each gestures menu element
      */
-    get GESTURES_MENU () {
+    get GESTURES_MENU() {
         return [
             {
                 text: formatMessage({
@@ -499,7 +528,7 @@ class Scratch3ArduinoBlocks {
     /**
      * @return {array} - text and values for each pin state menu element
      */
-    get PIN_STATE_MENU () {
+    get PIN_STATE_MENU() {
         return [
             {
                 text: formatMessage({
@@ -523,7 +552,7 @@ class Scratch3ArduinoBlocks {
     /**
      * @return {array} - text and values for each tilt direction menu element
      */
-    get TILT_DIRECTION_MENU () {
+    get TILT_DIRECTION_MENU() {
         return [
             {
                 text: formatMessage({
@@ -563,7 +592,7 @@ class Scratch3ArduinoBlocks {
     /**
      * @return {array} - text and values for each tilt direction (plus "any") menu element
      */
-    get TILT_DIRECTION_ANY_MENU () {
+    get TILT_DIRECTION_ANY_MENU() {
         return [
             ...this.TILT_DIRECTION_MENU,
             {
@@ -581,7 +610,7 @@ class Scratch3ArduinoBlocks {
      * Construct a set of Arduino blocks.
      * @param {Runtime} runtime - the Scratch 3.0 runtime.
      */
-    constructor (runtime) {
+    constructor(runtime, extensionId=Scratch3ArduinoBlocks.EXTENSION_ID) {
         /**
          * The Scratch 3.0 runtime.
          * @type {Runtime}
@@ -589,13 +618,13 @@ class Scratch3ArduinoBlocks {
         this.runtime = runtime;
 
         // Create a new Arduino peripheral instance
-        this._peripheral = new Arduino(this.runtime, Scratch3ArduinoBlocks.EXTENSION_ID);
+        this._peripheral = new Arduino(this.runtime, extensionId);
     }
 
     /**
      * @returns {object} metadata for this extension and its blocks.
      */
-    getInfo () {
+    getInfo() {
         return {
             id: Scratch3ArduinoBlocks.EXTENSION_ID,
             name: Scratch3ArduinoBlocks.EXTENSION_NAME,
@@ -618,7 +647,7 @@ class Scratch3ArduinoBlocks {
                             menu: "on_off"
                         }
                     }
-                },{
+                }, {
                     opcode: 'set_pin_mode',
                     blockType: BlockType.COMMAND,
                     text: 'Set Pin [PIN] mode to [PIN_MODE]',
@@ -636,7 +665,7 @@ class Scratch3ArduinoBlocks {
                     }
                 },
                 {
-                    opcode: 'doesPinEquals',
+                    opcode: 'pinEquals',
                     text: formatMessage({
                         id: 'arduino.whenPinEquals',
                         default: 'when pin [PIN] is [ON_OFF]',
@@ -655,18 +684,18 @@ class Scratch3ArduinoBlocks {
                             menu: "on_off"
                         }
                     }
-                } ,
+                },
                 {
                     opcode: 'uploadDevMode',
                     text: formatMessage({
                         id: 'arduino.uploadDevMode',
                         default: 'Upload Dev Mode Script',
                         description: 'Upload Dev Mode Script'
-                     }),
+                    }),
                     blockType: BlockType.COMMAND,
-                    arguments: { 
+                    arguments: {
                     }
-                } 
+                }
             ],
             menus: {
                 digital_pins: {
@@ -676,11 +705,11 @@ class Scratch3ArduinoBlocks {
                 },
                 on_off: {
                     acceptReporters: true,
-                    items: [{text: "0", value: 0}, {text: "1", value: 1}]
+                    items: [{ text: "0", value: 0 }, { text: "1", value: 1 }]
                 },
                 pin_mode: {
                     acceptReporters: true,
-                    items: [{text: "INPUT", value: 0}, {text: "OUTPUT", value: 1}]
+                    items: [{ text: "INPUT", value: 0 }, { text: "OUTPUT", value: 1 }]
                 },
                 buttons: {
                     acceptReporters: true,
@@ -712,41 +741,41 @@ class Scratch3ArduinoBlocks {
 
     digital_write(args) {
         console.log(args);
-        
+
         let pin = args['PIN'];
         pin = parseInt(pin, 10);
 
         let value = args['ON_OFF'];
         value = parseInt(value, 10);
-        msg = {"command": "digital_write", "pin": pin, "value": value};
-        return this._peripheral.send( "digital_write", msg);
- 
+        msg = { "command": "digital_write", "pin": pin, "value": value };
+        return this._peripheral.send("digital_write", msg);
+
     }
-    set_pin_mode(args) { 
+    set_pin_mode(args) {
         let pin = args['PIN'];
         pin = parseInt(pin, 10);
 
         let value = args['PIN_MODE'];
         value = parseInt(value, 10);
-        msg = {"command": "set_pin_mode", "pin": pin, "value": value};
-        return this._peripheral.send( "digital_write", msg);
-    } 
+        msg = { "command": "set_pin_mode", "pin": pin, "value": value };
+        return this._peripheral.send("digital_write", msg);
+    }
 
     /**
      * Test whether the A or B button is pressed
      * @param {object} args - the block's arguments.
      * @return {boolean} - true if the button is pressed.
      */
-    doesPinEquals (args) {
-        
+    pinEquals(args) {
+
         let pin = args['PIN'];
         pin = parseInt(pin, 10);
 
         let valueStr = args['ON_OFF'];
         value = parseInt(valueStr, 10);
-        msg = {"command": "digital_read", "pin": pin};
+        msg = { "command": "digital_read", "pin": pin };
         // msg = JSON.stringify(msg);
-        return this._peripheral.send( "digital_read", msg).then(currentValue=>{
+        return this._peripheral.send("digital_read", msg).then(currentValue => {
             return currentValue === valueStr;
         });
     }
@@ -755,13 +784,23 @@ class Scratch3ArduinoBlocks {
      * @param {object} args - the block's arguments.
      * @return {boolean} - true if the dev mode is uploaded.
      */
-    uploadDevMode (args) {
-        msg = {"command": "upload_dev_mode"};
-        // msg = JSON.stringify(msg);
-        return this._peripheral.send( "upload_dev_mode", msg).then(currentValue=>{
+    uploadDevMode(args) {
+        let dataToSend = {};
+        let allblocks = this.runtime.targets[1].blocks;
+        let startingBlockId = allblocks.getScripts()[0];
+        let startingBlock = allblocks.getBlock(startingBlockId);
+        msg = {
+            "command": "upload_dev_mode",
+            "data": {
+                "blocks": allblocks._blocks, 
+                "startingBlock":startingBlockId
+             }
+        };
+
+        return this._peripheral.send("upload_dev_mode", msg).then(currentValue => {
             return currentValue === valueStr;
         });
-    }   
+    }
 }
 
 module.exports = Scratch3ArduinoBlocks;
