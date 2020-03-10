@@ -657,7 +657,7 @@ class Scratch3ArduinoBlocks {
                             defaultValue: '7',
                             menu: "digital_pins"
                         },
-                        ON_OFF: {
+                        PIN_MODE: {
                             type: ArgumentType.NUMBER,
                             defaultValue: '0',
                             menu: "pin_mode"
@@ -665,7 +665,7 @@ class Scratch3ArduinoBlocks {
                     }
                 },
                 {
-                    opcode: 'pinEquals',
+                    opcode: 'pin_equals',
                     text: formatMessage({
                         id: 'arduino.whenPinEquals',
                         default: 'when pin [PIN] is [ON_OFF]',
@@ -695,6 +695,17 @@ class Scratch3ArduinoBlocks {
                     blockType: BlockType.COMMAND,
                     arguments: {
                     }
+                },
+                {
+                    opcode: 'uploadRunMode',
+                    text: formatMessage({
+                        id: 'arduino.uploadRunMode',
+                        default: 'Upload Run Mode Script',
+                        description: 'Upload Run Mode Script'
+                    }),
+                    blockType: BlockType.COMMAND,
+                    arguments: {
+                    }
                 }
             ],
             menus: {
@@ -705,11 +716,11 @@ class Scratch3ArduinoBlocks {
                 },
                 on_off: {
                     acceptReporters: true,
-                    items: [{ text: "0", value: 0 }, { text: "1", value: 1 }]
+                    items: [{ text: "LOW", value: 'LOW' }, { text: "HIGH", value: 'HIGH' }]
                 },
                 pin_mode: {
                     acceptReporters: true,
-                    items: [{ text: "INPUT", value: 0 }, { text: "OUTPUT", value: 1 }]
+                    items: [{ text: "INPUT", value: "INPUT" }, { text: "OUTPUT", value: "OUTPUT" }]
                 },
                 buttons: {
                     acceptReporters: true,
@@ -766,7 +777,7 @@ class Scratch3ArduinoBlocks {
      * @param {object} args - the block's arguments.
      * @return {boolean} - true if the button is pressed.
      */
-    pinEquals(args) {
+    pin_equals(args) {
 
         let pin = args['PIN'];
         pin = parseInt(pin, 10);
@@ -791,13 +802,32 @@ class Scratch3ArduinoBlocks {
         let startingBlock = allblocks.getBlock(startingBlockId);
         msg = {
             "command": "upload_dev_mode",
+            "data": {   }
+        };
+
+        return this._peripheral.send("upload_dev_mode", msg).then(currentValue => {
+            return currentValue === valueStr;
+        });
+    }
+    /**
+     * Upload run mode script
+     * @param {object} args - the block's arguments.
+     * @return {boolean} - true if the dev mode is uploaded.
+     */
+    uploadRunMode(args) {
+        let dataToSend = {};
+        let allblocks = this.runtime.targets[1].blocks;
+        let startingBlockId = allblocks.getScripts()[0];
+        let startingBlock = allblocks.getBlock(startingBlockId);
+        msg = {
+            "command": "upload_run_mode",
             "data": {
                 "blocks": allblocks._blocks, 
                 "startingBlock":startingBlockId
              }
         };
 
-        return this._peripheral.send("upload_dev_mode", msg).then(currentValue => {
+        return this._peripheral.send("upload_run_mode", msg).then(currentValue => {
             return currentValue === valueStr;
         });
     }
