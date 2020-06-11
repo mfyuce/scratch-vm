@@ -716,7 +716,7 @@ class Scratch3ArduinoBlocks {
                 },
                 on_off: {
                     acceptReporters: true,
-                    items: [{ text: "LOW", value: 'LOW' }, { text: "HIGH", value: 'HIGH' }]
+                    items: [{ text: "LOW", value: '0' }, { text: "HIGH", value: '1' }]
                 },
                 pin_mode: {
                     acceptReporters: true,
@@ -749,15 +749,16 @@ class Scratch3ArduinoBlocks {
             }
         };
     }
-
+    getLowHigh(val){
+        return val === "LOW"?0:val==="HIGH"?1:val;
+    }
     digital_write(args) {
         console.log(args);
 
         let pin = args['PIN'];
         pin = parseInt(pin, 10);
 
-        let value = args['ON_OFF'];
-        value = parseInt(value, 10);
+        let value = this.getLowHigh(args['ON_OFF']);
         msg = { "command": "digital_write", "pin": pin, "value": value };
         return this._peripheral.send("digital_write", msg);
 
@@ -782,8 +783,7 @@ class Scratch3ArduinoBlocks {
         let pin = args['PIN'];
         pin = parseInt(pin, 10);
 
-        let valueStr = args['ON_OFF'];
-        value = parseInt(valueStr, 10);
+        let valueStr = this.getLowHigh(args['ON_OFF']) + "";
         msg = { "command": "digital_read", "pin": pin };
         // msg = JSON.stringify(msg);
         return this._peripheral.send("digital_read", msg).then(currentValue => {
